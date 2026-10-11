@@ -132,6 +132,7 @@ export const EDUCATION_SOURCES={
  csf:{name:'NCBI Bookshelf - Neuroanatomy, Cerebrospinal Fluid',url:'https://www.ncbi.nlm.nih.gov/books/NBK470578/'},
  tentorium:{name:'NCBI Bookshelf - Neuroanatomy, Tentorium Cerebelli',url:'https://www.ncbi.nlm.nih.gov/books/NBK557840/'},
  hippocampus:{name:'NCBI Bookshelf - Neuroanatomy, Hippocampus',url:'https://www.ncbi.nlm.nih.gov/sites/books/NBK482171/'},
+ anatomyOverview:{name:'OpenStax Anatomy and Physiology 2e - Overview of Anatomy and Physiology',url:'https://openstax.org/books/anatomy-and-physiology-2e/pages/1-1-overview-of-anatomy-and-physiology'},
  orientation:{name:'OpenStax Anatomy and Physiology 2e - Anatomical Terminology',url:'https://openstax.org/books/anatomy-and-physiology-2e/pages/1-6-anatomical-terminology'},
 } satisfies Record<string,EducationSource>;
 
@@ -230,7 +231,7 @@ export const EDUCATION_FAMILIES:EducationFamilyRecord[]=[
 ];
 
 const FACT_INPUTS:AnatomyFactInput[]=[
- {id:'general-01',text:'Anatomy describes structure; physiology explains how those structures function.',sourceId:'connective'},
+ {id:'general-01',text:'Anatomy describes structure; physiology explains how those structures function.',sourceId:'anatomyOverview'},
  {id:'general-02',text:'Organs are built from multiple tissue types that work together as functional units.',sourceId:'connective'},
  {id:'general-03',text:'Body systems are interdependent: circulation supplies tissues while respiratory, digestive and urinary organs exchange materials with the blood.',sourceId:'circulation'},
  {id:'general-04',text:'Anatomical position provides a shared reference for describing directions and relationships in the body.',sourceId:'abdomen'},
@@ -480,48 +481,50 @@ export const EXACT_DEFINITION_RECORDS:ExactDefinitionRecord[]=[
  {id:'hippocampal-formation',fmaIds:['FMA261139','FMA261141'],canonicalNames:['right hippocampal formation','left hippocampal formation'],template:'The {name} is a curved medial temporal-lobe complex on the named side that includes the hippocampus and closely related cortical regions. It is a component of the limbic system with an established role in forming and organizing memory.',sourceIds:['hippocampus','brain']},
 ];
 
+// Tokens: {name} the selected structure; {side} ' on the left/right side of the body' when the name
+// states a side; {{whole|part}} picks wording for a whole structure or a named part, branch or segment.
 export const FAMILY_DEFINITION_TEMPLATES:Record<string,string>={
- 'external-oblique':'The {name} is an external oblique muscle or one of its subdivisions in the superficial anterolateral abdominal wall. It contributes to abdominal compression, trunk stabilization and rotation.',
+ 'external-oblique':'The {name} is {{the external oblique muscle|a part of the external oblique muscle}}{side}, in the superficial anterolateral abdominal wall. It compresses the abdomen and helps bend and rotate the trunk.',
  diaphragm:'The {name} is the dome-shaped fibromuscular partition between the thoracic and abdominal cavities. Its contraction enlarges the thoracic cavity during inspiration.',
  cerebellum:'The {name} is a component of the cerebellum in the posterior cranial fossa. Cerebellar circuits coordinate movement, posture, balance and motor learning.',
- 'spinal-cord-family':'The {name} is a region or component of the spinal cord within the vertebral canal. It participates in spinal pathways or reflex circuitry according to the selected subdivision.',
- 'vagus-nerve':'The {name} is the vagus nerve or one of its subdivisions, extending from the medulla through the neck toward thoracic and abdominal viscera. Vagal fibers carry parasympathetic, visceral sensory or branchial motor signals according to the selected part.',
+ 'spinal-cord-family':'The {name} is part of the spinal cord, inside the vertebral canal of the spine. Spinal cord tissue carries signals between the brain and the body and contains circuits for reflexes.',
+ 'vagus-nerve':'The {name} is {{the vagus nerve|a part of the vagus nerve}}{side}, which runs from the medulla through the neck to organs in the chest and abdomen. Vagal fibers carry parasympathetic signals to these organs and sensory information back from them.',
  'brain-ventricles':'The {name} is a cavity or connection within the brain’s ventricular system. It contains or conducts cerebrospinal fluid between connected ventricular spaces.',
- 'brain-region':'The {name} is a region, subdivision or tissue component of the brain within the central nervous system. Its neural role depends on the specific region identified by the canonical name.',
- 'optic-pathway':'The {name} is a component of the visual pathway between the retina and central visual targets. It carries or redistributes visual neural signals according to whether it is a nerve, chiasm or tract.',
- 'peripheral-nerve':'The {name} is a peripheral neural structure such as a nerve, ganglion or plexus outside the brain and spinal cord. It carries or organizes sensory, motor or autonomic signals according to the selected component.',
- aorta:'The {name} is the aorta or one of its major segments in the systemic arterial circulation. It conducts blood from the left ventricle through the thorax and abdomen toward its downstream branches.',
- 'great-saphenous-vein':'The {name} is a great saphenous vein or one of its segments in the superficial medial lower limb. It returns superficial venous blood toward the common femoral vein.',
- artery:'The {name} is an artery, arterial branch or arterial segment in the cardiovascular system. It carries blood away from the heart or a larger parent artery toward a downstream territory.',
- vein:'The {name} is a vein, venous tributary or venous segment in the cardiovascular system. It drains blood from tissues or a smaller tributary toward a larger vein and ultimately the heart.',
- 'heart-structure':'The {name} is a chamber, wall, valve or other anatomical component of the heart in the middle mediastinum. It contributes to receiving, directing or pumping blood according to the selected cardiac component.',
- 'lung-family':'The {name} is a lung or pulmonary subdivision within the thoracic cavity on the side stated in its name. It forms part of the respiratory organ in which air is conducted toward gas-exchange surfaces.',
- airway:'The {name} is an airway or subdivision of the tracheobronchial tree between the larynx and the lungs. It conducts and distributes inspired and expired air.',
- hepatobiliary:'The {name} is an organ, lobe or duct of the hepatobiliary system in the upper abdomen. It participates in producing, storing or transporting bile according to the selected component.',
- 'stomach-family':'The {name} is the stomach or one of its anatomical subdivisions in the upper abdomen between the esophagus and duodenum. It contributes to storage, mixing or controlled passage of gastric contents.',
- 'pancreas-family':'The {name} is the pancreas or a pancreatic subdivision or duct in the posterior upper abdomen. It participates in digestive secretion or endocrine signaling according to the selected component.',
- 'small-intestine-family':'The {name} is a region or segment of the small intestine between the stomach and large intestine. It contributes to digestion and absorption according to the selected intestinal part.',
- 'large-intestine-family':'The {name} is a region or structural feature of the large intestine along its abdominal or pelvic course. It contributes to movement and compaction of intestinal contents or supports that process.',
- 'mesentery-family':'The {name} is a mesentery or mesocolon connecting a bowel segment with its abdominal attachment. It supports the bowel and carries associated vessels, nerves and lymphatics.',
- 'esophagus-family':'The {name} is the esophagus or one of its subdivisions along the muscular passage from the pharynx to the stomach. It conducts swallowed material toward the stomach.',
- 'kidney-family':'The {name} is a kidney or renal subdivision in the retroperitoneal posterior abdomen on the side stated in its name. It contributes to filtration, urine formation or urine drainage according to the selected component.',
- 'urinary-passage':'The {name} is an organ or passage of the urinary tract between the kidneys and the exterior. It stores or conveys urine according to whether the selected component is a ureter, bladder or urethral structure.',
- 'thyroid-gland':'The {name} is the thyroid gland or one of its lobes in the anterior lower neck beside the upper trachea. It produces thyroid hormones that influence metabolism, growth and development.',
- 'endocrine-gland':'The {name} is an endocrine gland or glandular subdivision that releases hormones into the circulation. Its location and hormonal role depend on the organ identified by the canonical name.',
- 'ear-family':'The {name} is a sensory or supporting component of the external, middle or inner ear in the temporal region. It contributes to sound conduction, auditory transduction or balance according to the selected component.',
- 'ocular-family':'The {name} is an ocular structure or adnexal component within or around the bony orbit on the side stated in its name. It contributes to optics, retinal signaling, eye movement, protection or tear drainage according to the selected part.',
- 'lymphoid-organ':'The {name} is a lymphoid organ or one of its subdivisions within the immune and lymphatic system. It supports immune-cell development, surveillance or blood filtering according to the selected organ.',
- 'male-reproductive':'The {name} is an organ, duct or subdivision of the male reproductive system in the pelvis, perineum or external genital region. It contributes to sperm production, maturation, transport, seminal fluid or delivery according to the selected component.',
- 'skin-surface':'The {name} is a region of skin or a body-surface structure within the integumentary system. It contributes to barrier protection, sensation or a specialized surface function according to the selected part.',
- 'tooth-family':'The {name} is a tooth identified by its jaw, side and tooth class where those are stated. Its crown participates in cutting, tearing or grinding, while its root anchors it within alveolar bone.',
- 'gingiva-family':'The {name} is gingival tissue surrounding the necks of teeth along the alveolar margin named in the selection. It forms a protective soft-tissue seal around the teeth and their supporting structures.',
- 'cartilage-family':'The {name} is a cartilage or cartilaginous support at the joint, airway, rib or other region stated in its name. It provides resilient support or a low-friction, load-distributing surface according to its type and site.',
- 'intervertebral-disc':'The {name} is a fibrocartilaginous disc between the adjacent vertebral bodies identified by its spinal level. It distributes load while permitting limited movement between those vertebrae.',
- 'bone-family':'The {name} is a bone, bony subdivision or skeletal feature within the skeletal system. It provides structural support or forms part of a joint, attachment or protective framework according to the selected anatomy.',
- 'ligament-family':'The {name} is a ligament or ligamentous support connecting or stabilizing structures in the region identified by its canonical name. Its collagen fibers guide or limit movement according to its attachments.',
- 'tendon-family':'The {name} is a tendon or tendinous attachment connecting a muscle with another anatomical structure. It transmits muscular force along the line of pull defined by its attachments.',
- 'connective-support':'The {name} is a connective-tissue support, membrane, fascia or attachment associated with the structures identified in its canonical name. It supports, separates, connects or transmits force between neighboring anatomy.',
- 'skeletal-muscle':'The {name} is a skeletal muscle or a subdivision of one within the muscular system. Its fibers span between anatomical attachments to produce or stabilize movement according to their line of pull.',
+ 'brain-region':'The {name} is a region or tissue of the brain, part of the central nervous system inside the skull. Brain regions work in connected networks that process sensation, movement, memory and the control of body functions.',
+ 'optic-pathway':'The {name} is part of the visual pathway that carries signals from the retina toward the brain\'s visual centers. Damage along this pathway produces characteristic patterns of vision loss.',
+ 'peripheral-nerve':'The {name} is a peripheral neural structure{side}, part of the nervous system outside the brain and spinal cord. Nerves, ganglia and plexuses like it carry sensory, motor or autonomic signals between the central nervous system and the body.',
+ aorta:'The {name} is {{the aorta|a segment of the aorta}}, the largest artery in the body. It carries blood from the left ventricle through the thorax and abdomen to its branches.',
+ 'great-saphenous-vein':'The {name} is {{the great saphenous vein|a segment of the great saphenous vein}}{side}, the long superficial vein on the inner side of the lower limb. It returns blood from the foot and leg to the common femoral vein near the groin.',
+ artery:'The {name} is {{an artery|a branch or segment of an artery}}{side}. Arteries carry blood away from the heart under pressure to supply the tissues downstream.',
+ vein:'The {name} is {{a vein|a tributary or segment of a vein}}{side}. It drains blood from the tissues back toward the heart; many veins have valves that prevent backflow.',
+ 'heart-structure':'The {name} is part of the heart, which sits in the middle mediastinum between the lungs. Its chambers, walls and valves work together to receive blood and pump it to the lungs and the rest of the body.',
+ 'lung-family':'The {name} is {{a lung|a part of a lung}}{side}, inside the thoracic cavity. Lung tissue carries air through branching airways to tiny air sacs where oxygen enters the blood.',
+ airway:'The {name} is part of the airway tree between the larynx and the lungs. Airways conduct air in and out of the lungs and branch repeatedly as they go deeper.',
+ hepatobiliary:'The {name} is part of the liver and bile system in the upper abdomen. This system makes bile, stores it in the gallbladder and delivers it to the small intestine to help digest fats.',
+ 'stomach-family':'The {name} is {{the stomach|a part of the stomach}}, between the esophagus and the duodenum in the upper abdomen. The stomach stores swallowed food, mixes it with acid and enzymes, and releases it gradually into the small intestine.',
+ 'pancreas-family':'The {name} is {{the pancreas|a part of the pancreas}}, which lies across the back of the upper abdomen. The pancreas releases digestive enzymes into the duodenum and hormones such as insulin into the blood.',
+ 'small-intestine-family':'The {name} is part of the small intestine, the long tube between the stomach and the large intestine. Most digestion and absorption of nutrients happens in the small intestine.',
+ 'large-intestine-family':'The {name} is part of the large intestine, the final major section of the digestive tract. The large intestine absorbs water and salts and moves waste toward the rectum.',
+ 'mesentery-family':'The {name} is a mesentery or mesocolon: a fold of peritoneum that attaches part of the bowel to the abdominal wall. It holds the bowel in place and carries its blood vessels, nerves and lymphatics.',
+ 'esophagus-family':'The {name} is {{the esophagus|a part of the esophagus}}, the muscular tube from the pharynx to the stomach. Waves of muscle contraction push swallowed food and liquid down to the stomach.',
+ 'kidney-family':'The {name} is {{a kidney|a part of a kidney}}{side}, in the retroperitoneal posterior abdomen. The kidneys filter blood, form urine and help balance body fluids and salts.',
+ 'urinary-passage':'The {name} is part of the urinary tract, which carries urine from the kidneys to the outside of the body. The ureters carry urine down, the bladder stores it, and the urethra empties it.',
+ 'thyroid-gland':'The {name} is {{the thyroid gland|a part of the thyroid gland}} at the front of the lower neck, beside the upper trachea. It produces thyroid hormones that influence metabolism, growth and development.',
+ 'endocrine-gland':'The {name} is an endocrine gland or part of one. Endocrine glands release hormones into the blood to coordinate processes in distant organs.',
+ 'ear-family':'The {name} is part of the ear{side}, in the temporal region of the skull. The ear collects and conducts sound, converts it into nerve signals, and also senses balance.',
+ 'ocular-family':'The {name} is part of the eye or the structures around it{side}, in and around the bony orbit. Together these parts focus light, turn it into nerve signals, move and protect the eye, and drain tears.',
+ 'lymphoid-organ':'The {name} is part of the lymphatic and immune system. Lymphoid organs produce, store or screen immune cells and help the body detect and respond to infection.',
+ 'male-reproductive':'The {name} is part of the male reproductive system. These organs and ducts produce, mature and carry sperm and make seminal fluid and sex hormones.',
+ 'skin-surface':'The {name} is a region of skin or a body-surface structure. Skin forms a protective barrier, senses touch and temperature, and helps control body heat.',
+ 'tooth-family':'The {name} is a tooth{side}. Its crown cuts, tears or grinds food, while its root anchors it in the bone of the jaw.',
+ 'gingiva-family':'The {name} is gum tissue (gingiva) around the necks of the teeth along the jaw. It forms a protective seal around the teeth and their supporting bone.',
+ 'cartilage-family':'The {name} is a cartilage{side}: firm, flexible connective tissue. Depending on its site it supports a structure such as an airway or rib, or provides a smooth, load-spreading joint surface.',
+ 'intervertebral-disc':'The {name} is a fibrocartilage disc between two neighboring vertebral bodies at the spinal level in its name. It cushions load and allows a little movement between those vertebrae.',
+ 'bone-family':'The {name} is {{a bone|a part or feature of a bone}}{side}. Bones support the body, protect organs, form joints and give muscles firm places to attach.',
+ 'ligament-family':'The {name} is a ligament{side}: a band of tough connective tissue. Ligaments hold structures together, most often bone to bone at a joint, and limit unwanted movement.',
+ 'tendon-family':'The {name} is a tendon{side}: a cord of dense connective tissue joining a muscle to bone or another structure. It transmits the muscle\'s pull to move or steady a joint.',
+ 'connective-support':'The {name} is a connective-tissue structure such as a membrane, fascia or fibrous attachment. Tissues like this support, separate and connect neighboring structures and transmit force between them.',
+ 'skeletal-muscle':'The {name} is {{a skeletal muscle|a part of a skeletal muscle}}{side}. Skeletal muscle moves or steadies the body by contracting and pulling on the bones or tissues it attaches to.',
 };
 
 export interface DefinitionFamilyRule {
@@ -620,7 +623,27 @@ interface ResolvedDefinition {
  definitionSourceIds:SourceId[];
 }
 
-const renderDefinition=(template:string,displayName:string)=>template.replaceAll('{name}',displayName);
+const SUBDIVISION_PATTERN=/\b(?:part|head|belly|portion|fibers?|branch|segment|lobe|lobule|region|division|root|trunk|tributary|surface|wall|layer|zone|subdivision|tail|neck|body) of\b|\b(?:branch|segment|tributary|lobe)\b/;
+const sideText=(laterality?:'Left'|'Right')=>laterality?` on the ${laterality.toLowerCase()} side of the body`:'';
+/** Fills a definition template. Older exact templates carried a placeholder clause about laterality; it is replaced with the actual side. */
+/** Older templates carried placeholder clauses about laterality; they become the actual side, or disappear. */
+const renderSide=(text:string,laterality?:'Left'|'Right')=>text
+ .replaceAll(' on the named side when laterality is specified',sideText(laterality))
+ .replaceAll(' on the named side of the ',laterality?` on the ${laterality.toLowerCase()} side of the `:' in the ')
+ .replaceAll(' on the named side',sideText(laterality))
+ .replaceAll(' on the side stated in its name',sideText(laterality));
+// Left/right inside cardiac terms (left ventricle, right coronary) or names using both words do not name a body side.
+const bodySideFor=(normalizedName:string)=>hasPhrase(normalizedName,'left')!==hasPhrase(normalizedName,'right')&&!/\b(?:ventricle|ventricular|atrium|atrial|auricle|coronary|interventricular|interatrial)\b/.test(normalizedName)?lateralityFor(normalizedName):undefined;
+const renderTemplate=(template:string,displayName:string,normalizedName='',laterality?:'Left'|'Right')=>{
+ const subdivision=SUBDIVISION_PATTERN.test(normalizedName);
+ return renderSide(template,laterality)
+  .replace(/\{\{([^|}]*)\|([^}]*)\}\}/g,(_match,whole:string,part:string)=>subdivision?part:whole)
+  .replaceAll('{side}',sideText(laterality))
+  .replaceAll('The {name}',`The ${proseName(displayName)}`)
+  .replaceAll('{name}',displayName);
+};
+/** Catalogue names are common nouns; inside a sentence they read as "the left femur", not "the Left femur". */
+const proseName=(name:string)=>/^[A-Z][a-z]/.test(name)?name[0].toLowerCase()+name.slice(1):name;
 const mergeSourceIds=(...groups:SourceId[][]):SourceId[]=>[...new Set(groups.flat())];
 const GENERIC_OVERVIEW_MARKERS=[' is a named ',' represented in the atlas',' represented as a member','exact educational profile','modeled part of','this entry is shown with related'];
 const hasGenericOverview=(text:string)=>GENERIC_OVERVIEW_MARKERS.some(marker=>text.toLowerCase().includes(marker));
@@ -629,7 +652,7 @@ const relationForDefinition=(normalizedName:string)=>{
  const match=normalizedName.match(/\b(branch|part|region|segment|subdivision|wall|layer|lobe|surface|cavity|content|zone|nucleus|root|trunk|duct|system|tree|space) of (.+)$/);
  if(!match)return undefined;
  const [,kind,parent]=match,article=/^[aeiou]/.test(kind)?'an':'a';
- return `Its canonical name places it as ${article} ${kind} of ${displayStructureName(parent)}.`;
+ return `It is ${article} ${kind} of the ${parent}.`;
 };
 const addTraceableRelation=(definition:string,normalizedName:string)=>{
  const relation=relationForDefinition(normalizedName);
@@ -637,6 +660,7 @@ const addTraceableRelation=(definition:string,normalizedName:string)=>{
 };
 
 function resolveDefinition(fmaId:string,normalizedName:string,displayName:string,system:SystemId,family?:EducationFamilyRecord):ResolvedDefinition{
+ const laterality=bodySideFor(normalizedName),renderDefinition=(template:string,name:string)=>renderTemplate(template,name,normalizedName,laterality);
  const exact=exactDefinitionByFma.get(fmaId);
  if(exact)return {definition:renderDefinition(exact.template,displayName),definitionResolution:'exact-fma',definitionRuleId:exact.id,definitionSourceIds:[...exact.sourceIds]};
  const canonical=exactDefinitionByName.get(normalizedName);
@@ -654,13 +678,13 @@ function resolveDefinition(fmaId:string,normalizedName:string,displayName:string
 }
 
 function exactProfile(record:EducationRecord,method:'exact-fma'|'exact-name',concept:Pick<Concept,'id'|'name'|'elements'>,selectedParts:Pick<Part,'id'|'name'|'conceptId'|'system'>[]):EducationProfile{
- const selectedName=concept.name||selectedParts[0]?.name||record.displayName,normalized=normalizeStructureName(selectedName),displayName=displayStructureName(selectedName),fmaId=normalizeFmaId(concept.id||selectedParts[0]?.conceptId),laterality=lateralityFor(normalized),pieceCount=new Set(selectedParts.map(part=>part.id)).size||concept.elements.length,system=dominantSystem(selectedParts,record.system),definition=resolveDefinition(fmaId,normalized,displayName,system);
- return {selectedName,displayName,canonicalName:record.displayName,fmaId,system,quality:'exact',resolution:method,...definition,identification:record.summary,laterality,region:regionFor(normalized),location:record.location,mainFunction:record.mainFunction,facts:[...record.facts],clinical:record.clinical,partOf:record.partOf,articulations:record.articulations?[...record.articulations]:undefined,attachments:record.attachments?[...record.attachments]:undefined,relatedStructures:record.relatedStructures?[...record.relatedStructures]:undefined,sourceIds:mergeSourceIds(record.sourceIds,definition.definitionSourceIds),pieceCount};
+ const selectedName=concept.name||selectedParts[0]?.name||record.displayName,normalized=normalizeStructureName(selectedName),displayName=displayStructureName(selectedName),fmaId=normalizeFmaId(concept.id||selectedParts[0]?.conceptId),laterality=lateralityFor(normalized),pieceCount=new Set(selectedParts.map(part=>part.id)).size||concept.elements.length,system=record.system??dominantSystem(selectedParts),definition=resolveDefinition(fmaId,normalized,displayName,system);
+ return {selectedName,displayName,canonicalName:record.displayName,fmaId,system,quality:'exact',resolution:method,...definition,identification:record.summary,laterality,region:regionFor(normalized),location:record.location&&renderSide(record.location,bodySideFor(normalized)),mainFunction:record.mainFunction,facts:[...record.facts],clinical:record.clinical,partOf:record.partOf,articulations:record.articulations?[...record.articulations]:undefined,attachments:record.attachments?[...record.attachments]:undefined,relatedStructures:record.relatedStructures?[...record.relatedStructures]:undefined,sourceIds:mergeSourceIds(record.sourceIds,definition.definitionSourceIds),pieceCount};
 }
 
 function familyProfile(family:EducationFamilyRecord,method:'alias'|'family',concept:Pick<Concept,'id'|'name'|'elements'>,selectedParts:Pick<Part,'id'|'name'|'conceptId'|'system'>[]):EducationProfile{
  const selectedName=concept.name||selectedParts[0]?.name||family.name,normalized=normalizeStructureName(selectedName),displayName=displayStructureName(selectedName),fmaId=normalizeFmaId(concept.id||selectedParts[0]?.conceptId),laterality=lateralityFor(normalized),context={name:normalized,displayName,laterality},pieceCount=new Set(selectedParts.map(part=>part.id)).size||concept.elements.length,system=dominantSystem(selectedParts,family.systems?.[0]),definition=resolveDefinition(fmaId,normalized,displayName,system,family),authoredOverview=family.identify?.(context)??'';
- return {selectedName,displayName,canonicalName:selectedName,fmaId,system,quality:'family',resolution:method,familyId:family.id,familyName:family.name,...definition,identification:!authoredOverview||hasGenericOverview(authoredOverview)?familyOverview(family):authoredOverview,laterality,region:regionFor(normalized),location:family.location,mainFunction:family.mainFunction,facts:[...family.facts],sourceIds:mergeSourceIds(family.sourceIds,definition.definitionSourceIds),pieceCount};
+ return {selectedName,displayName,canonicalName:selectedName,fmaId,system,quality:'family',resolution:method,familyId:family.id,familyName:family.name,...definition,identification:!authoredOverview||hasGenericOverview(authoredOverview)?familyOverview(family):authoredOverview,laterality,region:regionFor(normalized),location:family.location&&renderSide(family.location,bodySideFor(normalized)),mainFunction:family.mainFunction,facts:[...family.facts],sourceIds:mergeSourceIds(family.sourceIds,definition.definitionSourceIds),pieceCount};
 }
 
 export function resolveEducationProfile(concept:Pick<Concept,'id'|'name'|'elements'>,selectedParts:Pick<Part,'id'|'name'|'conceptId'|'system'>[]):EducationProfile{
@@ -696,3 +720,6 @@ export function discoveryFactCollectionFor(context:{name?:string;fmaId?:string;s
 export function discoveryFactsFor(name?:string,system?:SystemId){
  return discoveryFactCollectionFor({name,system}).facts;
 }
+
+/** Structures with hand-authored, structure-specific content: the pool for the find-it quiz. */
+export const AUTHORED_FMA_IDS:ReadonlySet<string>=new Set([...EDUCATION_RECORDS.flatMap(record=>record.fmaIds),...EXACT_DEFINITION_RECORDS.flatMap(record=>record.fmaIds)].map(id=>normalizeFmaId(id)));

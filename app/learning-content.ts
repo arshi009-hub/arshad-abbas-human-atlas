@@ -3,7 +3,7 @@ import type {AnatomyFact,EducationProfile,EducationSource} from './education-con
 export const LEARNED_STORAGE_KEY='arshad-anatomy-lab-learned-v1';
 export const LEARN_CAMERA_COMMAND={type:'fit',preserveDirection:true} as const;
 
-export interface LearningQuestion {id:'definition'|'function'|'fact';prompt:string;answer:string}
+export interface LearningQuestion {id:'definition'|'function'|'fact'|'location'|'relationship'|'clinical'|'part-of';prompt:string;answer:string}
 export interface LearningRelationshipGroup {label:string;items:string[]}
 export interface LearningProfile {
  displayName:string;
@@ -57,19 +57,58 @@ const WORD_PRONUNCIATIONS:Record<string,string>={
  thoracic:'thuh-RASS-ik',trapezius:'truh-PEE-zee-us',transverse:'trans-VURS',tributary:'TRIB-yoo-tair-ee',vein:'vayn',ventricle:'VEN-trih-kul',
 };
 
-const SIMPLE_SUBSTITUTIONS:Array<[RegExp,string]>=[
+// Plain-language rewrites, longest phrases first. Proper names that contain these words
+// (superior vena cava, lateral ventricle, cranial nerve) are left alone by matching only
+// adverbs and "<direction> side/surface/end/part" phrases, never bare adjectives.
+const SIMPLE_SUBSTITUTIONS:Array<[RegExp,string|((...args:any[])=>string)]>=[
+ [/\bwhen laterality is specified\b/gi,'when the name says which side'],
+ [/\blaterality\b/gi,'which side of the body'],
  [/\bmiddle mediastinum\b/gi,'central space between the lungs'],
  [/\bmediastinum\b/gi,'central area of the chest'],
- [/\bcranial cavity\b/gi,'space inside the skull'],
  [/\bposterior cranial fossa\b/gi,'lower space at the back of the skull'],
+ [/\bcranial cavity\b/gi,'space inside the skull'],
+ [/\bcranial bones?\b/gi,match=>match.toLowerCase().endsWith('s')?'skull bones':'skull bone'],
+ [/\bthoracic cavity\b/gi,'chest cavity'],
+ [/\babdominal cavity\b/gi,'belly cavity'],
+ [/\bvertebral canal\b/gi,'tunnel through the spine'],
  [/\bretroperitoneal\b/gi,'behind the abdominal lining'],
+ [/\bperitoneum\b/gi,'abdominal lining'],
  [/\banterolateral\b/gi,'front and side'],
+ [/\bposterolateral\b/gi,'back and side'],
+ [/\banteromedial\b/gi,'front and inner'],
+ [/\bposteromedial\b/gi,'back and inner'],
+ [/\barticulating (\w+ly )?with\b/gi,'forming a joint $1with'],[/\barticulates (\w+ly )?with\b/gi,'forms a joint $1with'],[/\barticulations\b/gi,'joints'],[/\barticulation\b/gi,'joint'],
+ [/\bthe proximal (\w+)/gi,'the end of the $1 nearer the trunk'],
+ [/\bthe distal (\w+)/gi,'the end of the $1 farther from the trunk'],
+ [/\bproximally\b/gi,'at the end nearer the trunk'],
+ [/\bdistally\b/gi,'at the end farther from the trunk'],
+ [/\banteriorly\b/gi,'toward the front'],[/\bposteriorly\b/gi,'toward the back'],
+ [/\bsuperiorly\b/gi,'upward'],[/\binferiorly\b/gi,'downward'],
+ [/\bmedially\b/gi,'toward the midline'],[/\blaterally\b/gi,'away from the midline'],
+ [/\b(anterior|posterior|superior|inferior|medial|lateral) (side|surface|end|border|part|aspect|wall)\b/gi,(_m,dir:string,noun:string)=>`${({anterior:'front',posterior:'back',superior:'upper',inferior:'lower',medial:'inner',lateral:'outer'} as Record<string,string>)[dir.toLowerCase()]} ${noun}`],
+ [/\bipsilateral\b/gi,'same-side'],[/\bcontralateral\b/gi,'opposite-side'],[/\bbilateral\b/gi,'two-sided'],
+ [/\bupper limbs?\b/gi,match=>match.toLowerCase().endsWith('s')?'arms':'arm'],
+ [/\blower limbs?\b/gi,match=>match.toLowerCase().endsWith('s')?'legs':'leg'],
+ [/\bthorax\b/gi,'chest'],[/\bthoracic\b/gi,'chest'],
  [/\bduodenum\b/gi,'first part of the small intestine'],
+ [/\bsesamoid bone\b/gi,'small bone that sits inside a tendon'],
+ [/\bfibrocartilage\b/gi,'tough, flexible cartilage'],
+ [/\bfibromuscular\b/gi,'muscle-and-fiber'],
+ [/\bdistensible\b/gi,'stretchy'],
  [/\blymphatics\b/gi,'lymph vessels'],
+ [/\bvasculature\b/gi,'blood vessels'],
+ [/\bmusculature\b/gi,'muscles'],
+ [/\binnervation\b/gi,'nerve supply'],
  [/\bviscera\b/gi,'internal organs'],
  [/\bvisceral\b/gi,'organ-facing'],
- [/\bproximally\b/gi,'at the nearer end'],
- [/\bdistally\b/gi,'at the farther end'],
+ [/\blumen\b/gi,'inner channel'],
+ [/\binspiration\b/gi,'breathing in'],[/\bexpiration\b/gi,'breathing out'],
+ [/\bsynthesizes\b/gi,'makes'],[/\bsecretes\b/gi,'releases'],[/\bsecretions\b/gi,'fluids it releases'],
+ [/\btransmits\b/gi,'passes on'],[/\bconducts\b/gi,'carries'],[/\bconveys\b/gi,'carries'],
+ [/\bfacilitates\b/gi,'helps'],[/\bregulates\b/gi,'controls'],[/\bregulate\b/gi,'control'],
+ [/\bcomprising\b/gi,'made up of'],[/\bsituated\b/gi,'located'],[/\bapproximately\b/gi,'about'],
+ [/\bsubdivisions?\b/gi,match=>match.toLowerCase().endsWith('s')?'parts':'part'],
+ [/\bcanonical\b/gi,'standard'],
  [/\bprincipal\b/gi,'main'],
  [/\bcontributes to\b/gi,'helps with'],
  [/\bparticipates in\b/gi,'helps with'],
@@ -99,7 +138,7 @@ export function toSimpleEnglish(text:string,protectedName=''){
  if(!text)return text;
  const marker='__SELECTED_STRUCTURE__',namePattern=protectedName?new RegExp(escapeRegExp(protectedName),'gi'):null,matches=namePattern?text.match(namePattern):null;
  let result=namePattern?text.replace(namePattern,marker):text;
- for(const [pattern,replacement] of SIMPLE_SUBSTITUTIONS)result=result.replace(pattern,replacement);
+ for(const [pattern,replacement] of SIMPLE_SUBSTITUTIONS)result=typeof replacement==='string'?result.replace(pattern,replacement):result.replace(pattern,replacement as (...args:string[])=>string);
  if(matches?.length)for(const match of matches)result=result.replace(marker,match);
  return result;
 }
@@ -143,12 +182,53 @@ export function buildLearningProfile(profile:EducationProfile,fact:AnatomyFact,s
   interestingFact:fact.text,
   sources:[...sourceMap.values()],
   relatedStructures:uniqueText(profile.relatedStructures??[]),
-  questions:[
-   {id:'definition',prompt:`How would you define ${profile.displayName}?`,answer:profile.definition},
-   {id:'function',prompt:profile.mainFunction?`What is the main function of ${profile.displayName}?`:`What source-supported point helps place ${profile.displayName} in context?`,answer:functionAnswer},
-   {id:'fact',prompt:`What is one useful fact to remember about ${profile.displayName}?`,answer:factAnswer},
-  ],
+  questions:recallQuestions(profile,functionAnswer,factAnswer),
  };
+}
+
+/** Three recall questions built from the structure's own sourced fields, so they differ between
+ * structures and ask about place, relationships and relevance rather than restating the definition. */
+function recallQuestions(profile:EducationProfile,functionAnswer:string,factAnswer:string):LearningQuestion[]{
+ const name=profile.displayName.length?profile.displayName[0].toLowerCase()+profile.displayName.slice(1):profile.displayName,the=`the ${name}`;
+ const articulation=profile.articulations?.[0],attachment=profile.attachments?.[0];
+ const candidates:Array<LearningQuestion|undefined>=[
+  profile.location?{id:'location',prompt:`Where in the body is ${the} found?`,answer:profile.location}:undefined,
+  articulation?{id:'relationship',prompt:`Name one structure that ${the} forms a joint with.`,answer:articulation}:attachment?{id:'relationship',prompt:`Name one attachment of ${the}.`,answer:attachment}:undefined,
+  profile.mainFunction?{id:'function',prompt:`What does ${the} do?`,answer:profile.mainFunction}:undefined,
+  profile.clinical?{id:'clinical',prompt:`Why does ${the} matter in clinical practice?`,answer:profile.clinical}:undefined,
+  profile.partOf?{id:'part-of',prompt:`Which larger structure or system is ${the} part of?`,answer:profile.partOf}:undefined,
+  {id:'definition',prompt:`In one sentence, what is ${the}?`,answer:profile.definition},
+  {id:'fact',prompt:profile.mainFunction?`What is one fact about ${the} beyond its function?`:`What helps place ${the} in context?`,answer:profile.mainFunction?factAnswer:functionAnswer},
+ ];
+ const chosen:LearningQuestion[]=[],answers=new Set<string>();
+ for(const question of candidates){if(!question||chosen.length===3)continue;const key=normalizeStructureName(question.answer);if(!key||answers.has(key))continue;answers.add(key);chosen.push(question);}
+ for(const fallback of [{id:'fact' as const,prompt:`What is one useful fact to remember about ${the}?`,answer:factAnswer},{id:'definition' as const,prompt:`How would you define ${the}?`,answer:profile.definition}])if(chosen.length<3)chosen.push(fallback);
+ return chosen.slice(0,3);
+}
+
+// Spaced repetition: a learned structure comes back for review after 1, 3, 7, 14 and 30 days.
+export const LEARNING_RECORDS_KEY='arshad-anatomy-lab-learning-v2';
+export const REVIEW_INTERVAL_DAYS=[1,3,7,14,30] as const;
+export interface LearningRecord {learnedAt:number;reviewedAt:number;stage:number}
+export type LearningRecords=Record<string,LearningRecord>;
+const DAY=86_400_000;
+export function parseLearningRecords(v2:string|null,legacyV1:string|null,now=Date.now()):LearningRecords{
+ const records:LearningRecords={};
+ if(v2)try{const parsed:unknown=JSON.parse(v2);if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))for(const [id,value] of Object.entries(parsed as Record<string,unknown>)){const key=normalizeFmaId(id),record=value as Partial<LearningRecord>;if(/^FMA\d+$/.test(key)&&typeof record?.learnedAt==='number'&&typeof record.reviewedAt==='number'&&typeof record.stage==='number')records[key]={learnedAt:record.learnedAt,reviewedAt:record.reviewedAt,stage:Math.max(0,Math.min(REVIEW_INTERVAL_DAYS.length,Math.floor(record.stage)))};}}catch{/* fall back to the legacy list */}
+ for(const id of parseLearnedIds(legacyV1))records[id]??={learnedAt:now,reviewedAt:now,stage:0};
+ return records;
+}
+export function serializeLearningRecords(records:LearningRecords){return JSON.stringify(records);}
+export function toggleLearningRecord(records:LearningRecords,id:string,now=Date.now()):LearningRecords{
+ const key=normalizeFmaId(id),next={...records};
+ if(next[key])delete next[key];else next[key]={learnedAt:now,reviewedAt:now,stage:0};
+ return next;
+}
+export function reviewDueAt(record:LearningRecord){return record.stage>=REVIEW_INTERVAL_DAYS.length?Infinity:record.reviewedAt+REVIEW_INTERVAL_DAYS[record.stage]*DAY;}
+export function dueForReview(records:LearningRecords,now=Date.now()){return Object.entries(records).filter(([,record])=>reviewDueAt(record)<=now).sort((a,b)=>reviewDueAt(a[1])-reviewDueAt(b[1])).map(([id])=>id);}
+export function markReviewed(records:LearningRecords,id:string,remembered:boolean,now=Date.now()):LearningRecords{
+ const key=normalizeFmaId(id),record=records[key];if(!record)return records;
+ return {...records,[key]:{...record,reviewedAt:now,stage:remembered?Math.min(record.stage+1,REVIEW_INTERVAL_DAYS.length):0}};
 }
 
 export const ORIENTATION_SOURCE:EducationSource={name:'OpenStax Anatomy and Physiology 2e - Anatomical Terminology',url:'https://openstax.org/books/anatomy-and-physiology-2e/pages/1-6-anatomical-terminology'};

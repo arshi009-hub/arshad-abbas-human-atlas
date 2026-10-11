@@ -1,0 +1,10 @@
+{
+ "name": "Human Anatomy Lab 3D",
+ "short_name": "Anatomy Lab",
+ "description": "Interactive 3D human anatomy explorer by Arshad Abbas.",
+ "start_url": "/",
+ "display": "standalone",
+ "background_color": "#020817",
+ "theme_color": "#020817",
+ "icons": [{"src": "/anatomy-lab-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
+}

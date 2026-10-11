@@ -2,7 +2,7 @@
 
 An interactive 3D anatomy explorer built with React, Three.js, and shadcn/ui. Take the BodyParts3D adult male reference apart into **2,234 individually selectable meshes**, explore **15 anatomical systems**, and search **3,432 named concepts**.
 
-**[Explore the live demo](https://human-atlas-seven.vercel.app)**
+**[Explore the live site](https://arshad-abbas-human-atlas.vercel.app)**
 
 ## Explore
 
@@ -12,6 +12,10 @@ An interactive 3D anatomy explorer built with React, Three.js, and shadcn/ui. Ta
 - Search anatomical names and source identifiers.
 - Isolate a selected structure and read its details.
 - Use compact controls and detail panels on mobile.
+- Learn any structure with plain-language explanations, structure-specific recall questions and spaced review (1, 3, 7, 14 and 30 days).
+- Test yourself with the find-it quiz: tap the named structure on the model.
+- Share a structure directly: links such as `/?s=FMA9611` open the femur.
+- Explore without a mouse: focus the 3D view and use the arrow keys to orbit, + and − to zoom, and Enter to inspect the structure under the centre marker.
 
 ## Run locally
 
@@ -28,8 +32,7 @@ Open http://localhost:3016. To build the static site, run `npm run build`; the o
 
 ```sh
 npm run check
-node scripts/validate-atlas.mjs
-node scripts/validate-interactions.mjs
+npm run validate
 npm run build
 ```
 
@@ -39,7 +42,7 @@ Validation covers mesh buffers, names and concept membership, nonoverlapping exp
 
 The current viewer uses **BodyParts3D 4.0**, an adult male reference anatomy, licensed **CC BY 4.0**. It does not represent every human structure or variation. Individual source meshes are distinct from named concepts, which may group multiple meshes. Descriptions distinguish general system context from individual organ explanations.
 
-Geometry is simplified for browser performance while retaining every source mesh. The packaged model contains 2,288,268 triangles and downloads approximately 33 MB of compressed geometry. Full credits, source links, and adaptation details are in [ATTRIBUTION.md](public/ATTRIBUTION.md).
+Geometry is simplified for browser performance while retaining every source mesh. The packaged model contains 2,288,268 triangles. Positions are quantized on a grid of 0.02% of each structure's size (ten times finer than the simplification error), normals use 8-bit octahedral encoding, and everything is compressed with the meshoptimizer codecs: about 11 MB to download, down from 33 MB. Muscles, skeleton and body surface (about 5.6 MB) load first so the body appears quickly; vessels, nerves and organs stream in afterwards. Full credits, source links, and adaptation details are in [ATTRIBUTION.md](public/ATTRIBUTION.md).
 
 This is an educational explorer, not a diagnostic or surgical tool.
 
@@ -51,7 +54,7 @@ The optional WebMCP tools expose anatomy search and inspection in compatible bro
 
 ## Rebuilding geometry
 
-The repository includes browser-ready geometry. Rebuilding it is optional: obtain the official BodyParts3D OBJ archive and English metadata tables, prepare the joined concepts and display-system mappings, run `scripts/convert-anatomy.py`, then `node scripts/optimize-anatomy.mjs` and `node scripts/compress-models.mjs`. Simplification uses a 0.2% relative error limit per structure.
+The repository includes browser-ready geometry. Rebuilding it is optional: obtain the official BodyParts3D OBJ archive and English metadata tables, prepare the joined concepts and display-system mappings, run `scripts/convert-anatomy.py`, then `node scripts/optimize-anatomy.mjs` and `npm run models:encode`. Simplification uses a 0.2% relative error limit per structure. Encoded chunks get content-hashed file names, so `vercel.json` can cache them permanently while `atlas.json` is always revalidated.
 
 ## Deploy
 

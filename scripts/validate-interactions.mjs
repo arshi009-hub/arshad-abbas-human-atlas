@@ -4,7 +4,7 @@ import {createExplosionLayout,explosionOffsetFor} from '../app/explosion-layout.
 import {PointerTap} from '../app/pointer-tap.ts';
 import {atlasTools} from '../app/agent-tools.ts';
 import {DISCOVERY_FACTS,discoveryFactCollectionFor,normalizeStructureName,resolveEducationProfile,sourcesFor} from '../app/education-content.ts';
-import {buildLearningProfile,LEARN_CAMERA_COMMAND,ORIENTATION_HELP,ORIENTATION_SOURCE,parseLearnedIds,pronunciationFor,serializeLearnedIds,toSimpleEnglish,toggleLearnedId} from '../app/learning-content.ts';
+import {buildLearningProfile,dueForReview,LEARN_CAMERA_COMMAND,markReviewed,ORIENTATION_HELP,ORIENTATION_SOURCE,parseLearnedIds,parseLearningRecords,pronunciationFor,serializeLearnedIds,serializeLearningRecords,toSimpleEnglish,toggleLearnedId,toggleLearningRecord} from '../app/learning-content.ts';
 
 for (const file of ['atlas.json']) {
   const atlas=JSON.parse(await readFile(new URL(`../public/models/${file}`,import.meta.url)));
@@ -37,7 +37,8 @@ for (const file of ['atlas.json']) {
     assert.equal(learning.definition,profile.definition,`${concept.id} learn definition changed`);
     assert.ok(learning.identifyInModel.includes(profile.displayName),`${concept.id} model guide lost the selected name`);
     assert.equal(learning.questions.length,3,`${concept.id} does not have a three-question check`);
-    const supportedAnswers=new Set([profile.definition,profile.mainFunction,...profile.facts,fact.text].filter(Boolean).map(normalizeStructureName));
+    const supportedAnswers=new Set([profile.definition,profile.mainFunction,profile.location,profile.partOf,profile.clinical,...(profile.articulations??[]),...(profile.attachments??[]),...profile.facts,fact.text].filter(Boolean).map(normalizeStructureName));
+    assert.equal(new Set(learning.questions.map(question=>normalizeStructureName(question.answer))).size,learning.questions.length,`${concept.id} repeats a knowledge-check answer`);
     for(const question of learning.questions)assert.ok(supportedAnswers.has(normalizeStructureName(question.answer)),`${concept.id} knowledge check contains an unsupported answer`);
     assert.ok(learning.sources.length>0&&learning.sources.every(source=>source.name&&new URL(source.url).protocol==='https:'),`${concept.id} learn sources are invalid`);
     if(learning.clinical)assert.equal(learning.clinical,profile.clinical,`${concept.id} introduced new clinical copy`);
@@ -57,6 +58,20 @@ const learnedOnce=toggleLearnedId([],'FMA:7088'),learnedTwice=toggleLearnedId(le
 assert.deepEqual(parseLearnedIds(serializeLearnedIds(learnedOnce)),['FMA7088']);
 assert.deepEqual(learnedTwice,[]);
 assert.deepEqual(parseLearnedIds('{not valid'),[]);
+// Plain language reaches anatomical directions and joints but leaves proper names alone.
+const plainFemur=toSimpleEnglish('The femur articulates proximally with the pelvis and the distal femur forms the knee. It transmits load through the lower limb.','femur');
+assert.ok(plainFemur.includes('forms a joint')&&plainFemur.includes('at the end nearer the trunk')&&plainFemur.includes('the end of the femur farther from the trunk')&&plainFemur.includes('leg'),plainFemur);
+assert.equal(toSimpleEnglish('The superior vena cava drains into the right atrium.'),'The superior vena cava drains into the right atrium.');
+// Spaced repetition: 1, 3, 7, 14, 30 days; a miss resets the interval; legacy v1 progress migrates.
+const t0=Date.UTC(2026,0,1),day=86_400_000;
+let records=toggleLearningRecord({},'FMA:7088',t0);
+assert.deepEqual(dueForReview(records,t0+day-1),[]);assert.deepEqual(dueForReview(records,t0+day),['FMA7088']);
+records=markReviewed(records,'FMA7088',true,t0+day);assert.deepEqual(dueForReview(records,t0+3*day),[]);assert.deepEqual(dueForReview(records,t0+4*day),['FMA7088']);
+records=markReviewed(records,'FMA7088',false,t0+4*day);assert.equal(records.FMA7088.stage,0);
+assert.deepEqual(Object.keys(parseLearningRecords(serializeLearningRecords(records),null)),['FMA7088']);
+assert.deepEqual(Object.keys(parseLearningRecords(null,'["FMA9611"]',t0)),['FMA9611']);
+assert.deepEqual(parseLearningRecords('{broken',null),{});
+assert.deepEqual(toggleLearningRecord(records,'FMA7088'),{});
 console.log('Learn mode content, source, camera-preservation, orientation-help, and local-progress contracts passed.');
 const tap=new PointerTap();
 tap.down(1,10,10,7,0);assert.equal(tap.up(1,12,11,200),true);
